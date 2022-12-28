@@ -1,0 +1,42 @@
+1.Not Allow any teacher to insert/update if that teacher is teaching Hindi (Use subject multi select picklist).
+
+
+
+//Trigger on Teach Object
+trigger RestrictTeachingHindi on Teach__c (before insert,before update) {
+   fflib_SObjectDomain.triggerHandler(Teaches.class);
+  }
+  
+  
+  
+//Domain Class
+public class Teaches extends fflib_SObjectDomain{
+    public Teaches(list<Teach__c> sObjectList){
+        super(sObjectList);
+    }
+    
+    public class Constructor implements fflib_SObjectDomain.IConstructable{
+        public fflib_SObjectDomain construct(List<SObject> sObjectList){
+            return new Teaches(sObjectList);
+        }
+    }
+    
+    public override void onApplyDefaults(){
+        for(Teach__c t:(list<Teach__c>) Records){
+            String subject=t.subject__c;
+            if(subject.contains('Hindi')){
+                //throw new TeachServiceException('Teacher cannot select Hindi');
+                t.addError('Teacher cannot select Hindi');
+            }
+        }
+    }
+    
+    public override void handleBeforeInsert(){
+        onApplyDefaults();
+    }
+    public override void handleBeforeUpdate(map<Id,SObject> existingRecord){
+        onApplyDefaults();
+    }
+    
+    public class TeachServiceException extends Exception{}
+}
