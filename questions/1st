@@ -40,3 +40,5 @@ public class Teaches extends fflib_SObjectDomain{
     
     public class TeachServiceException extends Exception{}
 }
+
+
