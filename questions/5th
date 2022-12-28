@@ -1,0 +1,36 @@
+5.In Opportunity, If the stage is changed from another
+value to CLOSED_WON or CLOSED_LOST,
+populates the Close Date field with Today().
+
+//Trigger
+trigger TriggerOnOpportunity on Opportunity (before update) {
+
+    if(Trigger.isbefore){
+        if(Trigger.isUpdate){
+            TriggerOnOpportunityHelper.updateDate(Trigger.new,Trigger.old);
+        }
+    }
+}
+
+//Class
+public class TriggerOnOpportunityHelper {
+    public static void updateDate(list<opportunity> newOpp, list<opportunity> oldOpp){
+        system.debug(system.today());
+        
+        for(opportunity old:oldOpp){
+            for(opportunity newp: newOpp){
+                if(old.id == newp.id){
+                    // system.debug('inside the loop');
+                    if(old.StageName!='CLOSED WON' && old.StageName!='CLOSED LOST'){
+                        // system.debug(old.StageName);
+                        //system.debug('inside the if statement');
+                        if(newp.StageName=='CLOSED WON' || newp.StageName=='CLOSED LOST'){
+                            system.debug( newp.StageName);
+                            newp.CloseDate=System.today();
+                        }
+                    }
+                }
+            } 
+        }
+    }
+}
