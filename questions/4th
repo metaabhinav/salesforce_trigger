@@ -1,0 +1,51 @@
+4.When insert/update any student’s in class then update
+MyCount Accordingly(Use MyCount as a
+number field).
+
+
+//Trigger
+trigger TriggerOnStudent on Student__c (before insert, after insert, after update) {
+ fflib_SObjectDomain.triggerHandler(Students.class);
+}
+
+
+//class
+public class Students extends fflib_SObjectDomain{
+    public Students(list<Student__c> sObjectList){
+        super(sObjectList);
+    }
+    public class Constructor implements fflib_SObjectDomain.IConstructable{
+        public fflib_SObjectDomain construct(List<SObject> sObjectList){
+            return new Students(sObjectList);
+        }
+    }
+    
+ /*   public override void onBeforeInsert(){
+        for(Student__C s: (list<Student__c>) Records){
+            class__c classList=[select id,(select id from students__r) from class__c where id =:s.Class__c ];
+            if(classList.students__r.size()>=2){
+                s.class__c.addError('This class is full. Class strenght is 2. Please select another class');
+            }
+        }
+    }*/
+    
+    public override void onApplyDefaults(){
+        list<class__c> updatedClassList=new list<Class__c>();
+        for(Student__c s: (list<Student__c>) Records){
+            id clsId=s.Class__c;
+            list<student__c> c=[select id from student__c where class__c =:clsId];
+            Class__c cls=new Class__c(id=s.Class__c,MyCount__c=c.size()+1);
+            updatedClassList.add(cls);
+        }
+        update updatedClassList;
+    }
+    public override void onAfterInsert(){
+        onApplyDefaults();
+    }
+    public override void onAfterUpdate(map<Id,sObject> existingRecords){
+        onApplyDefaults();
+    }
+     //   public override void handleBeforeInsert(){
+    //        onBeforeInsert();
+    //    }
+}
