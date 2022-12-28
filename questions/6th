@@ -1,0 +1,41 @@
+6.Create a new PickList “Custom Status” in Class object.
+(New,Open,Close,Reset) values. When this
+field changed and value is “Reset” now then delete all
+associated students with related Class.
+//class
+
+public class Classes extends fflib_SObjectDomain{		
+    public Classes (List<Class__c> sObjectList){
+        super(sObjectList);
+    }
+    public class Constructor implements fflib_SObjectDomain.IConstructable{
+        public fflib_SObjectDomain construct(List<SObject> sObjectList){
+            return new Classes(sObjectList);
+        }
+    }
+    
+    public override void onBeforeDelete(){
+        for(Class__c c: (list<Class__c>) Records){
+            list<student__c> s=[select id, class__c from student__c
+                                where sex__c='Female' and class__c=:c.id];
+            if(s.size()>1){
+                c.addError('This Class contain more than 1 Female student. Owner Not Allow you to delete this class');
+            }
+        }
+    }
+    
+    public override void onAfterUpdate(map<id,sObject> existingRecords){
+        for(Class__c cls : (List<Class__c>) Records){
+            if(cls.Custom_Status__c=='Reset'){
+                list<Student__c> stdList= [select id from student__c where class__c =:cls.id];
+                if(stdList.size()>0){
+                    system.debug('yes');
+                    delete stdList;
+                }
+            }
+        }
+    }
+        
+        public override void handleBeforeDelete(){
+            onBeforeDelete();}
+    }
