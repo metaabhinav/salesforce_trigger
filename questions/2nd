@@ -1,0 +1,34 @@
+2.Not allow any class to delete if there are more than one
+Female students.
+//Trigger
+trigger restrictClassDelete on Class__c (before insert) {
+
+    fflib_SObjectDomain.triggerHandler(Classes.class);
+
+}
+
+
+//Domain
+public class Classes extends fflib_SObjectDomain{		
+    public Classes (List<Class__c> sObjectList){
+        super(sObjectList);
+    }
+    public class Constructor implements fflib_SObjectDomain.IConstructable{
+        public fflib_SObjectDomain construct(List<SObject> sObjectList){
+            return new Classes(sObjectList);
+        }
+    }
+    
+    public override void onBeforeDelete(){
+        for(Class__c c: (list<Class__c>) Records){
+            list<student__c> s=[select id, class__c from student__c
+                                where sex__c='Female' and class__c=:c.id];
+            if(s.size()>1){
+                c.addError('This Class contain more than 1 Female student. Owner Not Allow you to delete this class');
+            }
+        }
+    }
+    
+    public override void handleBeforeDelete(){
+        onBeforeDelete();}
+}
