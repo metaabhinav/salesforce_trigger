@@ -1,0 +1,33 @@
+3.Not allow insert student if class already reached
+MaxLimit.(Without using MyConnt field).
+
+//Trigger
+trigger TriggerOnStudent on Student__c (before insert) {
+    fflib_SObjectDomain.triggerHandler(Students.class);
+}
+
+//Class
+public class Students extends fflib_SObjectDomain{
+    public Students(list<Student__c> sObjectList){
+        super(sObjectList);
+    }
+    public class Constructor implements fflib_SObjectDomain.IConstructable{
+        public fflib_SObjectDomain construct(List<SObject> sObjectList){
+            return new Students(sObjectList);
+        }
+    }
+    
+    public override void onBeforeInsert(){
+        for(Student__C s: (list<Student__c>) Records){
+            class__c classList=[select id,(select id from students__r) from class__c where id
+                                =:s.Class__c ];
+            if(classList.students__r.size()>=2){
+                s.class__c.addError('This class is full. Class strenght is 2. Please select another class');
+            }
+        }
+    }
+    
+    public override void handleBeforeInsert(){
+        onBeforeInsert();
+    }
+}
